@@ -1,0 +1,16 @@
+# BOA FTD Python/py3270 POC — Dependencies
+#
+# Install with:   pip install -r requirements.txt
+# Virtual env:    python -m venv .venv && .venv\Scripts\activate
+
+# TN3270 mainframe driver (wraps s3270 binary)
+py3270>=0.3.1
+
+# Test runner
+pytest>=7.4
+
+# HTML test reports
+pytest-html>=4.0
+
+# Optional: read Excel test data files (.xlsx)
+# openpyxl>=3.1

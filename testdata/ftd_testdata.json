@@ -9,6 +9,53 @@
         },
         {
             "testCaseId": "TC002",
+            "description": "Invalid login – wrong password should show error",
+            "userId": "BOAUSER1",
+            "password": "WRONGPWD",
+            "expectedScreen": "LOGON - INVALID PASSWORD"
+        }
+    ],
+    "FTD_AccountInquiry": [
+        {
+            "testCaseId": "TC003",
+            "description": "Account inquiry for checking account",
+            "accountNumber": "1234567890",
+            "accountType": "CHK",
+            "expectedBalance": "5000.00",
+            "expectedStatus": "ACTIVE"
+        },
+        {
+            "testCaseId": "TC004",
+            "description": "Account inquiry for savings account",
+            "accountNumber": "9876543210",
+            "accountType": "SAV",
+            "expectedBalance": "12500.75",
+            "expectedStatus": "ACTIVE"
+        }
+    ],
+    "FTD_FundsTransfer": [
+        {
+            "testCaseId": "TC005",
+            "description": "Transfer funds between two checking accounts",
+            "fromAccount": "1234567890",
+            "toAccount": "0987654321",
+            "amount": "500.00",
+            "currency": "USD",
+            "expectedConfirmation": "TRANSFER SUCCESSFUL"
+        }
+    ]
+}
+{
+    "FTD_Login": [
+        {
+            "testCaseId": "TC001",
+            "description": "Valid login to mainframe FTD application",
+            "userId": "BOAUSER1",
+            "password": "P@ssword1",
+            "expectedScreen": "MAIN MENU"
+        },
+        {
+            "testCaseId": "TC002",
             "description": "Invalid login – wrong password",
             "userId": "BOAUSER1",
             "password": "WRONGPWD",

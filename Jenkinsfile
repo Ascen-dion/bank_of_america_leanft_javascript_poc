@@ -1,17 +1,17 @@
 /**
- * Jenkinsfile – CI/CD Pipeline for BOA Mainframe Automation POC
+ * Jenkinsfile – CI/CD Pipeline for BOA Mainframe Automation POC (Python/py3270)
  *
- * Mirrors the Jenkinsfile (pipeline configuration) from the Jarvis framework.
+ * Replaces the LeanFT/JavaScript pipeline from the Jarvis framework.
  * Supports execution against multiple environments (SIT / UAT).
  *
  * Prerequisites on the Jenkins agent:
- *   - Node.js 18+
- *   - OpenText LeanFT Agent running on the build node (or a remote agent host)
+ *   - Python 3.10+
+ *   - wc3270 installed (includes s3270.exe) — https://x3270.miraheze.org/wiki/Downloads
+ *   - s3270.exe on PATH of the Jenkins agent
  *   - Environment variables:
- *       TE_HOST      – mainframe hostname
- *       TE_PORT      – TN3270 port (default 23)
+ *       TE_HOST      – mainframe TN3270 hostname
+ *       TE_PORT      – TN3270 port (default 3270)
  *       TEST_ENV     – target environment label (SIT | UAT)
- *       LEANFT_AGENT – LeanFT agent host (if not localhost)
  */
 
 pipeline {
@@ -27,14 +27,25 @@ pipeline {
         string(
             name: 'SUITE_FILTER',
             defaultValue: '',
-            description: 'Optional Jasmine spec filter (e.g. "TC001" to run a single test)'
+            description: 'Optional pytest keyword filter (e.g. "TC001" to run a single test)'
+        )
+        string(
+            name: 'TE_HOST',
+            defaultValue: 'mainframe.boa.example.com',
+            description: 'TN3270 mainframe hostname'
+        )
+        string(
+            name: 'TE_PORT',
+            defaultValue: '3270',
+            description: 'TN3270 port'
         )
     }
 
     environment {
-        TEST_ENV  = "${params.TEST_ENV}"
-        NODE_ENV  = 'test'
-        RESULTS   = 'results'
+        TEST_ENV = "${params.TEST_ENV}"
+        TE_HOST  = "${params.TE_HOST}"
+        TE_PORT  = "${params.TE_PORT}"
+        RESULTS  = 'results'
     }
 
     options {
@@ -48,21 +59,21 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
-                echo "Branch: ${env.GIT_BRANCH} | Env: ${env.TEST_ENV}"
+                echo "Branch: ${env.GIT_BRANCH} | Env: ${env.TEST_ENV} | Host: ${env.TE_HOST}:${env.TE_PORT}"
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Install Python Dependencies') {
             steps {
-                sh 'node --version'
-                sh 'npm ci'
+                sh 'python --version'
+                sh 'pip install -r requirements.txt'
             }
         }
 
         stage('Pre-flight Checks') {
             steps {
-                echo "Verifying LeanFT agent connectivity..."
-                sh 'node -e "const s=require(\'./config/settings\'); console.log(\'Agent:\', s.agent.host + \':\' + s.agent.port);"'
+                echo 'Verifying s3270 is available on PATH...'
+                sh 's3270 -version || (echo "ERROR: s3270 not found. Install wc3270 and add to PATH." && exit 1)'
             }
         }
 
@@ -71,22 +82,21 @@ pipeline {
                 script {
                     def filter = params.SUITE_FILTER?.trim()
                     def cmd = filter
-                        ? "npx jasmine --filter=\"${filter}\""
-                        : 'npm test'
+                        ? "pytest tests/ -v -k \"${filter}\" --html=${env.RESULTS}/report.html --self-contained-html"
+                        : "pytest tests/ -v --html=${env.RESULTS}/report.html --self-contained-html"
                     sh cmd
                 }
             }
             post {
                 always {
-                    // Archive LeanFT HTML report
                     archiveArtifacts artifacts: "${env.RESULTS}/**/*", allowEmptyArchive: true
                     publishHTML(target: [
                         allowMissing:          true,
                         alwaysLinkToLastBuild: true,
                         keepAll:               true,
                         reportDir:             "${env.RESULTS}",
-                        reportFiles:           'index.html',
-                        reportName:            'LeanFT Automation Report'
+                        reportFiles:           'report.html',
+                        reportName:            'BOA FTD Automation Report'
                     ])
                 }
             }
@@ -99,10 +109,10 @@ pipeline {
             echo "All tests passed for environment: ${env.TEST_ENV}"
         }
         failure {
-            echo "Test run failed. Check the LeanFT report in the ${env.RESULTS} folder."
+            echo "Test run failed. Check the HTML report in the ${env.RESULTS} folder."
         }
         always {
-            cleanWs(patterns: [[pattern: 'node_modules', type: 'EXCLUDE']])
+            cleanWs(patterns: [[pattern: '.venv', type: 'EXCLUDE']])
         }
     }
 }
