@@ -1,6 +1,6 @@
 # Framework Comparison – Jarvis (Current) vs LeanFT JavaScript (New)
 
-> **Audience**: Client presentation – shows a direct component-by-component mapping between the existing Jarvis framework and the new LeanFT/JavaScript POC, demonstrating continuity while eliminating the VBScript/UFT dependency.
+> **Audience**: shows a direct component-by-component mapping between the existing Jarvis framework and the new LeanFT/JavaScript POC, demonstrating continuity while eliminating the VBScript/UFT dependency.
 
 ---
 
