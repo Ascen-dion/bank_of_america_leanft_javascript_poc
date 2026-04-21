@@ -1,0 +1,5 @@
+driver\BaseTest.class
+libraries\ReportHelper.class
+libraries\TerminalHelper.class
+config\Settings.class
+objectrepository\Screens.class
