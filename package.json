@@ -1,4 +1,13 @@
 {
+  "name": "boa-ftd-mainframe-automation-poc",
+  "version": "1.0.0",
+  "description": "Bank of America – Mainframe FTD Automation POC using LeanFT (JavaScript) + Jasmine",
+  "main": "driver/runner.js",
+  "scripts": {
+    "test": "jasmine --config=spec/support/jasmine.mjs",
+    "test:sit": "cross-env TEST_ENV=SIT npm test",
+    "test:uat": "cross-env TEST_ENV=UAT npm test"
+  },
   "dependencies": {
     "jasmine": "^6.2.0",
     "leanft": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft-2026.1.0.tgz",
@@ -19,6 +28,8 @@
     "leanft.sdk.uiapro": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft.sdk.uiapro-2026.1.0.tgz",
     "leanft.sdk.web": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft.sdk.web-2026.1.0.tgz",
     "leanft.sdk.winforms": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft.sdk.winforms-2026.1.0.tgz",
-    "leanft.sdk.wpf": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft.sdk.wpf-2026.1.0.tgz"
+    "leanft.sdk.wpf": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft.sdk.wpf-2026.1.0.tgz",
+    "cross-env": "^7.0.3",
+    "xlsx": "^0.18.5"
   }
 }
