@@ -1,4 +1,4 @@
-# Framework Comparison – Jarvis (Current) vs Python/py3270 (New)
+﻿# Framework Comparison - Jarvis (Current) vs Python/py3270 (New)
 
 > **Audience**: shows a direct component-by-component mapping between the existing Jarvis framework and the new open-source Python/py3270 POC, demonstrating continuity while eliminating the VBScript/UFT/LeanFT dependency entirely.
 
@@ -8,11 +8,11 @@
 
 ```mermaid
 flowchart LR
-    subgraph JARVIS["Current State – Jarvis  (UFT / VBScript)"]
+    subgraph JARVIS["Current State - Jarvis  (UFT / VBScript)"]
         direction TB
-        J1["Test Suite\n📄 Spreadsheet (.xlsx)"]
-        J2["Test Flows\n📋 XML"]
-        J3["Test Data\n📄 Spreadsheet (.xlsx)"]
+        J1["Test Suite\nSpreadsheet (.xlsx)"]
+        J2["Test Flows\nXML"]
+        J3["Test Data\nSpreadsheet (.xlsx)"]
         J4["ExecutionEngine\nDriver/Runner"]
         J5["Libraries\n.qfl VBScript files"]
         J6["ObjectRepository\nUFT .tsr / .mtr"]
@@ -21,15 +21,15 @@ flowchart LR
         J9["Jenkinsfile"]
     end
 
-    subgraph NEW["New State – Python / py3270 (POC)"]
+    subgraph NEW["New State - Python / py3270 (POC)"]
         direction TB
-        N1["Test Suite\n🧪 pytest spec (.py)"]
-        N2["Test Flow\n🔀 TestClass / test_ functions"]
-        N3["Test Data\n📊 JSON (ftd_testdata.json)"]
+        N1["Test Suite\npytest spec (.py)"]
+        N2["Test Flow\nTestClass / test_ functions"]
+        N3["Test Data\nJSON (ftd_testdata.json)"]
         N4["driver/runner.py\nSession lifecycle + fixtures"]
         N5["libraries/terminal_helper.py\nPython keyword functions"]
-        N6["objectrepository/screens.py\nPlain Python dict — no binary format"]
-        N7["config/settings.py\nEnv vars — no proprietary config"]
+        N6["objectrepository/screens.py\nPlain Python dict - no binary format"]
+        N7["config/settings.py\nEnv vars - no proprietary config"]
         N8["results/report.html\npytest-html report"]
         N9["Jenkinsfile (Python/pytest)"]
     end
@@ -55,7 +55,7 @@ flowchart LR
 | # | Jarvis Component | Jarvis Technology | New Component | New Technology |
 |---|---|---|---|---|
 | 1 | Test Suite | Excel Spreadsheet (`.xlsx`) | `tests/test_ftd_mainframe.py` | pytest (Python) |
-| 2 | Test Flows | XML | `class Test…` / `def test_…` | Native Python class structure |
+| 2 | Test Flows | XML | `class Test...` / `def test_...` | Native Python class structure |
 | 3 | Test Data | Excel Spreadsheet (`.xlsx`) | `testdata/ftd_testdata.json` | JSON via stdlib `json` module |
 | 4 | Driver / ExecutionEngine | UFT proprietary runner | `driver/runner.py` | pytest fixtures + py3270 |
 | 5 | Libraries | `.qfl` VBScript files | `libraries/terminal_helper.py` | Plain Python functions |
@@ -74,11 +74,11 @@ flowchart LR
 | **Tooling** | UFT + LeanFT (proprietary, licensed) | py3270 + pytest (open source, free) |
 | **Test runner** | UFT built-in | pytest (industry-standard, plugin ecosystem) |
 | **TN3270 driver** | HLLAPI via emulator (UFT TE add-in) | Direct TN3270 TCP socket via s3270 binary |
-| **Async model** | Synchronous, sequential | Synchronous (py3270 is blocking — safe for mainframe) |
+| **Async model** | Synchronous, sequential | Synchronous (py3270 is blocking - safe for mainframe) |
 | **Object Repo format** | Binary UFT format | Plain Python dict (readable, diffable in Git) |
 | **Test data format** | Excel only | JSON (default); easily extended to Excel via openpyxl |
-| **Licensing cost** | HIGH — UFT + LeanFT per-seat licenses | **ZERO** — all open source |
-| **VBScript risk** | **HIGH** – VBScript is being phased out of Windows | **NONE** – Python has long-term support |
+| **Licensing cost** | HIGH - UFT + LeanFT per-seat licenses | **ZERO** - all open source |
+| **VBScript risk** | **HIGH** - VBScript is being phased out of Windows | **NONE** - Python has long-term support |
 | **CI/CD maturity** | Limited (Litmus POC incomplete) | Jenkins pipeline ready (SIT + UAT) |
 | **Source control** | Limited visibility into binary files | Full Git diff visibility (all text files) |
 
@@ -86,20 +86,20 @@ flowchart LR
 
 ## What is Retained from Jarvis
 
-- ✅ Modular, layered architecture (same conceptual structure)
-- ✅ Data-driven approach (test data separate from test logic)
-- ✅ Keyword-driven action layer (reusable functions/keywords)
-- ✅ Centralised Object Repository
-- ✅ External configuration
-- ✅ Jenkins-based CI/CD pipeline
-- ✅ HTML test reports with step-level logging
-- ✅ TN3270 mainframe application support
+- Modular, layered architecture (same conceptual structure)
+- Data-driven approach (test data separate from test logic)
+- Keyword-driven action layer (reusable functions/keywords)
+- Centralised Object Repository
+- External configuration
+- Jenkins-based CI/CD pipeline
+- HTML test reports with step-level logging
+- TN3270 mainframe application support
 
 ## What Changes
 
-- ❌ VBScript → ✅ Python
-- ❌ UFT + LeanFT proprietary runner → ✅ py3270 + pytest (open source)
-- ❌ Binary object files → ✅ Plain Python dict (Git-friendly)
-- ❌ XML Test Flows → ✅ Native Python `class/def` structure
-- ❌ HLLAPI emulator dependency → ✅ Direct TN3270 TCP socket (s3270)
-- ❌ Per-seat licensing cost → ✅ Zero cost (all open source)
+- VBScript  ->  Python
+- UFT + LeanFT proprietary runner  ->  py3270 + pytest (open source)
+- Binary object files  ->  Plain Python dict (Git-friendly)
+- XML Test Flows  ->  Native Python class/def structure
+- HLLAPI emulator dependency  ->  Direct TN3270 TCP socket (s3270)
+- Per-seat licensing cost  ->  Zero cost (all open source)
