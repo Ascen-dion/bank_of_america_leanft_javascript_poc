@@ -1,0 +1,24 @@
+{
+  "dependencies": {
+    "jasmine": "^6.2.0",
+    "leanft": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft-2026.1.0.tgz",
+    "leanft.report": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft.report-2026.1.0.tgz",
+    "leanft.report.builder": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft.report.builder-2026.1.0.tgz",
+    "leanft.sdk.ai": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft.sdk.ai-2026.1.0.tgz",
+    "leanft.sdk.apitesting.uft": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft.sdk.apitesting.uft-2026.1.0.tgz",
+    "leanft.sdk.core": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft.sdk.core-2026.1.0.tgz",
+    "leanft.sdk.insight": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft.sdk.insight-2026.1.0.tgz",
+    "leanft.sdk.java": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft.sdk.java-2026.1.0.tgz",
+    "leanft.sdk.mobile": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft.sdk.mobile-2026.1.0.tgz",
+    "leanft.sdk.oracle": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft.sdk.oracle-2026.1.0.tgz",
+    "leanft.sdk.powerbuilder": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft.sdk.powerbuilder-2026.1.0.tgz",
+    "leanft.sdk.sapgui": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft.sdk.sapgui-2026.1.0.tgz",
+    "leanft.sdk.sapui5": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft.sdk.sapui5-2026.1.0.tgz",
+    "leanft.sdk.stdwin": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft.sdk.stdwin-2026.1.0.tgz",
+    "leanft.sdk.te": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft.sdk.te-2026.1.0.tgz",
+    "leanft.sdk.uiapro": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft.sdk.uiapro-2026.1.0.tgz",
+    "leanft.sdk.web": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft.sdk.web-2026.1.0.tgz",
+    "leanft.sdk.winforms": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft.sdk.winforms-2026.1.0.tgz",
+    "leanft.sdk.wpf": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft.sdk.wpf-2026.1.0.tgz"
+  }
+}
