@@ -2,6 +2,18 @@
  * External Configuration Settings
  * Mirrors the ConfigTemplates layer from the Jarvis framework.
  * All environment-specific values are externalized here.
+ *
+ * HOW LeanFT TE WORKS:
+ *   LeanFT does NOT open a direct TN3270 TCP connection itself.
+ *   It controls an already-running terminal emulator application
+ *   (IBM PCOMM, Attachmate Reflection, Micro Focus Rumba, etc.)
+ *   via HLLAPI – the standard IBM mainframe automation interface.
+ *
+ * PREREQUISITE:
+ *   1. Install a HLLAPI-capable terminal emulator (e.g. IBM PCOMM)
+ *   2. Connect it to the mainframe (TN3270 host/port configured in the emulator)
+ *   3. Start the LeanFT Agent
+ *   4. Run the tests – LeanFT will find and control the emulator window
  */
 
 "use strict";
@@ -13,22 +25,20 @@ const settings = {
         port: 54345
     },
 
-    // Mainframe Terminal Emulator host connection
+    // Terminal Emulator identification
+    // LeanFT finds the running TE window by its shortName (session name in the emulator)
     terminal: {
-        host: process.env.TE_HOST || "mainframe.bankofamerica.internal",
-        port: parseInt(process.env.TE_PORT) || 23,
-        sessionType: "TN3270",            // 3270 protocol for IBM mainframe
-        codePage: "037",                  // EBCDIC US English
-        connectionTimeout: 30000,         // ms
-        screenTimeout: 15000              // ms – max wait for screen to stabilize
+        // Short name / session name as configured in the terminal emulator (e.g. PCOMM session "A")
+        shortName: process.env.TE_SHORT_NAME || "A",
+        // Timeout (ms) for waitForText / screen stabilisation
+        screenTimeout: 15000
     },
 
     // Test execution settings
     execution: {
-        defaultTimeout: 30000,            // Jasmine default timeout (ms)
+        defaultTimeout: 60000,            // Jasmine default timeout (ms)
         screenshotOnFailure: true,
-        screenshotPath: "./results/screenshots",
-        retryCount: 0                     // retries per failed step
+        screenshotPath: "./results/screenshots"
     },
 
     // Reporting

@@ -1,16 +1,27 @@
-/**
- * FTD Test Suite – Bank of America Mainframe Automation POC
+﻿/**
+ * FTD Test Suite â€“ Bank of America Mainframe Automation POC
  * Framework: LeanFT (OpenText Functional Testing for Developers) + Jasmine
  * Technology: JavaScript / Node.js
- * Target:     IBM Mainframe via TN3270 Terminal Emulator (leanft.sdk.te)
+ * Target:     IBM Mainframe via TN3270 Terminal Emulator (leanft.sdk.te / HLLAPI)
+ *
+ * HOW IT WORKS:
+ *   LeanFT controls an ALREADY-RUNNING terminal emulator (IBM PCOMM,
+ *   Attachmate Reflection, etc.) via HLLAPI â€“ the IBM standard for
+ *   green screen automation. It does NOT open TN3270 sockets itself.
+ *
+ * BEFORE RUNNING:
+ *   1. Open your terminal emulator and connect to the mainframe
+ *   2. Set TE_SHORT_NAME env var to your session name (default: "A")
+ *   3. Start the LeanFT Agent
+ *   4. Run: npm test
  *
  * Architecture mirrors the Jarvis framework layers:
- *   Driver/Runner   → driver/runner.js
- *   Action Layer    → libraries/terminalHelper.js
- *   Object Repo     → objectrepository/screens.js
- *   Test Data       → testdata/ftd_testdata.json
- *   Configuration   → config/settings.js
- *   Reporting       → libraries/reportHelper.js  (LeanFT report)
+ *   Driver/Runner   â†’ driver/runner.js
+ *   Action Layer    â†’ libraries/terminalHelper.js
+ *   Object Repo     â†’ objectrepository/screens.js
+ *   Test Data       â†’ testdata/ftd_testdata.json
+ *   Configuration   â†’ config/settings.js
+ *   Reporting       â†’ libraries/reportHelper.js  (LeanFT report)
  */
 
 "use strict";
@@ -23,14 +34,14 @@ const reporter = require("../libraries/reportHelper");
 const td       = require("../testdata/testDataManager");
 const screens  = require("../objectrepository/screens");
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 //  Suite: FTD Mainframe Automation
-// ─────────────────────────────────────────────
-describe("FTD – BOA Mainframe Automation POC", function () {
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+describe("FTD â€“ BOA Mainframe Automation POC", function () {
 
     jasmine.DEFAULT_TIMEOUT_INTERVAL = settings.execution.defaultTimeout;
 
-    // ── SDK & Session Lifecycle ──────────────────
+    // â”€â”€ SDK & Session Lifecycle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     beforeAll(async function () {
         await runner.setup();
     });
@@ -47,20 +58,20 @@ describe("FTD – BOA Mainframe Automation POC", function () {
         await runner.teardown();
     });
 
-    // ────────────────────────────────────────────
-    //  TC001 – Valid Login
-    // ────────────────────────────────────────────
-    it("TC001 – Should successfully login with valid credentials", async function () {
-        const data    = td.get("FTD_Login", "TC001");
-        const session = runner.getSession();
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  TC001 â€“ Valid Login
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    it("TC001 â€“ Should successfully login with valid credentials", async function () {
+        const data = td.get("FTD_Login", "TC001");
+        const win  = runner.getWindow();
 
         reporter.startTestCase(data.testCaseId, data.description);
 
-        await terminal.login(session, data.userId, data.password);
+        await terminal.login(win, data.userId, data.password);
 
         // Verify Main Menu is displayed after successful login
-        const mainMenuScreen = await terminal.waitForScreen("MAIN_MENU");
-        const screenText = await mainMenuScreen.getText();
+        const screen     = await terminal.waitForScreen(win, "MAIN_MENU");
+        const screenText = await terminal.getScreenText(screen);
 
         expect(screenText).toContain(data.expectedScreen);
         reporter.logStep("Main Menu displayed after login", "PASS");
@@ -68,20 +79,20 @@ describe("FTD – BOA Mainframe Automation POC", function () {
         reporter.endTestCase(data.testCaseId, "PASS");
     });
 
-    // ────────────────────────────────────────────
-    //  TC002 – Invalid Login
-    // ────────────────────────────────────────────
-    it("TC002 – Should display error message for invalid credentials", async function () {
-        const data    = td.get("FTD_Login", "TC002");
-        const session = runner.getSession();
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  TC002 â€“ Invalid Login
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    it("TC002 â€“ Should display error message for invalid credentials", async function () {
+        const data = td.get("FTD_Login", "TC002");
+        const win  = runner.getWindow();
 
         reporter.startTestCase(data.testCaseId, data.description);
 
-        await terminal.login(session, data.userId, data.password);
+        await terminal.login(win, data.userId, data.password);
 
         // Verify error screen is shown
-        const errorScreen = await terminal.waitForScreen("ERROR_SCREEN");
-        const errorText   = await terminal.readField(errorScreen, "ERROR_SCREEN", "errorMessage");
+        const screen    = await terminal.waitForScreen(win, "ERROR_SCREEN");
+        const errorText = await terminal.readField(win, "ERROR_SCREEN", "errorMessage");
 
         expect(errorText.toUpperCase()).toContain("INVALID");
         reporter.logStep("Error message verified for invalid login", "PASS");
@@ -89,29 +100,29 @@ describe("FTD – BOA Mainframe Automation POC", function () {
         reporter.endTestCase(data.testCaseId, "PASS");
     });
 
-    // ────────────────────────────────────────────
-    //  TC003 – Account Inquiry (Checking)
-    // ────────────────────────────────────────────
-    it("TC003 – Should retrieve correct balance for checking account", async function () {
-        const data       = td.get("FTD_AccountInquiry", "TC003");
-        const loginData  = td.get("FTD_Login", "TC001");
-        const session    = runner.getSession();
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  TC003 â€“ Account Inquiry (Checking)
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    it("TC003 â€“ Should retrieve correct balance for checking account", async function () {
+        const data      = td.get("FTD_AccountInquiry", "TC003");
+        const loginData = td.get("FTD_Login", "TC001");
+        const win       = runner.getWindow();
 
         reporter.startTestCase(data.testCaseId, data.description);
 
         // Login
-        await terminal.login(session, loginData.userId, loginData.password);
-        const menuScreen = await terminal.waitForScreen("MAIN_MENU");
+        await terminal.login(win, loginData.userId, loginData.password);
+        const menuScreen = await terminal.waitForScreen(win, "MAIN_MENU");
 
         // Navigate to Account Inquiry
         await terminal.selectMenuOption(
-            menuScreen,
+            win, menuScreen,
             screens.MAIN_MENU.menuOptions.accountInquiry
         );
 
         // Perform inquiry and capture results
         const result = await terminal.accountInquiry(
-            menuScreen,
+            win, menuScreen,
             data.accountNumber,
             data.accountType
         );
@@ -130,29 +141,29 @@ describe("FTD – BOA Mainframe Automation POC", function () {
         reporter.endTestCase(data.testCaseId, "PASS");
     });
 
-    // ────────────────────────────────────────────
-    //  TC005 – Funds Transfer
-    // ────────────────────────────────────────────
-    it("TC005 – Should successfully transfer funds between accounts", async function () {
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  TC005 â€“ Funds Transfer
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    it("TC005 â€“ Should successfully transfer funds between accounts", async function () {
         const data      = td.get("FTD_FundsTransfer", "TC005");
         const loginData = td.get("FTD_Login", "TC001");
-        const session   = runner.getSession();
+        const win       = runner.getWindow();
 
         reporter.startTestCase(data.testCaseId, data.description);
 
         // Login
-        await terminal.login(session, loginData.userId, loginData.password);
-        const menuScreen = await terminal.waitForScreen("MAIN_MENU");
+        await terminal.login(win, loginData.userId, loginData.password);
+        const menuScreen = await terminal.waitForScreen(win, "MAIN_MENU");
 
         // Navigate to Funds Transfer
         await terminal.selectMenuOption(
-            menuScreen,
+            win, menuScreen,
             screens.MAIN_MENU.menuOptions.fundsTransfer
         );
 
         // Execute transfer
         const confirmationNumber = await terminal.fundsTransfer(
-            menuScreen,
+            win, menuScreen,
             data.fromAccount,
             data.toAccount,
             data.amount,
@@ -160,8 +171,8 @@ describe("FTD – BOA Mainframe Automation POC", function () {
         );
 
         // Verify confirmation screen message
-        const confirmScreen = await terminal.waitForScreen("FUNDS_TRANSFER_CONFIRM");
-        const message       = await terminal.readField(confirmScreen, "FUNDS_TRANSFER_CONFIRM", "message");
+        const confirmScreen = await terminal.waitForScreen(win, "FUNDS_TRANSFER_CONFIRM");
+        const message       = await terminal.readField(win, "FUNDS_TRANSFER_CONFIRM", "message");
 
         expect(message.toUpperCase()).toContain(data.expectedConfirmation);
         expect(confirmationNumber).toBeTruthy();
@@ -169,7 +180,7 @@ describe("FTD – BOA Mainframe Automation POC", function () {
         reporter.logStep(`Transfer confirmed. Reference: ${confirmationNumber}`, "PASS");
 
         // Sign off
-        await terminal.signOff(menuScreen);
+        await terminal.signOff(win, menuScreen);
 
         reporter.endTestCase(data.testCaseId, "PASS");
     });

@@ -1,14 +1,23 @@
-/**
- * Object Repository – Terminal Emulator Screen & Field Definitions
+﻿/**
+ * Object Repository â€“ Terminal Emulator Screen & Field Definitions
  * Mirrors the ObjectRepository layer from the Jarvis framework.
  *
  * Centralizes all 3270 mainframe screen identifiers and field locators
  * so tests never contain hard-coded screen text or field positions.
  *
+ * HOW FIELDS ARE IDENTIFIED (LeanFT TE SDK):
+ *   LeanFT finds fields by their "attached text" â€“ the protected label text
+ *   that appears immediately to the left of an input field on the 3270 screen.
+ *   This is the standard HLLAPI field identification mechanism.
+ *
+ *   Use the LeanFT Object Identification Center (OIC) with your live
+ *   terminal emulator connected to the mainframe to capture exact
+ *   attachedText values for each field.
+ *
  * Each screen entry contains:
- *   screenId   – logical name used in tests
- *   identifiers– text strings that uniquely identify the screen (used by TeScreen.find)
- *   fields     – named field descriptors with row/column positions or labels
+ *   screenId    â€“ logical name used in tests
+ *   identifiers â€“ text strings that appear on screen (used with waitForText)
+ *   fields      â€“ named field descriptors with their attachedText (label)
  */
 
 "use strict";
@@ -22,8 +31,8 @@ const screens = {
         screenId: "LOGON_SCREEN",
         identifiers: ["BANK OF AMERICA", "LOGON"],
         fields: {
-            userId:   { label: "USER ID", row: 10, col: 20, maxLen: 8 },
-            password: { label: "PASSWORD", row: 12, col: 20, maxLen: 8 }
+            userId:   { attachedText: "USER ID"  },
+            password: { attachedText: "PASSWORD" }
         },
         keys: {
             submit: "Enter",
@@ -38,7 +47,7 @@ const screens = {
         screenId: "MAIN_MENU",
         identifiers: ["MAIN MENU", "SELECT OPTION"],
         fields: {
-            option: { label: "OPTION", row: 20, col: 2, maxLen: 2 }
+            option: { attachedText: "OPTION" }
         },
         menuOptions: {
             accountInquiry:  "01",
@@ -59,11 +68,11 @@ const screens = {
         screenId: "ACCOUNT_INQUIRY",
         identifiers: ["ACCOUNT INQUIRY", "ENTER ACCOUNT NUMBER"],
         fields: {
-            accountNumber: { label: "ACCOUNT NUMBER", row: 8,  col: 25, maxLen: 10 },
-            accountType:   { label: "ACCOUNT TYPE",   row: 9,  col: 25, maxLen: 3  },
-            balance:       { label: "BALANCE",        row: 14, col: 25, maxLen: 15, readOnly: true },
-            status:        { label: "STATUS",         row: 15, col: 25, maxLen: 10, readOnly: true },
-            holderName:    { label: "ACCOUNT HOLDER", row: 16, col: 25, maxLen: 30, readOnly: true }
+            accountNumber: { attachedText: "ACCOUNT NUMBER" },
+            accountType:   { attachedText: "ACCOUNT TYPE"   },
+            balance:       { attachedText: "BALANCE"        },
+            status:        { attachedText: "STATUS"         },
+            holderName:    { attachedText: "ACCOUNT HOLDER" }
         },
         keys: {
             submit: "Enter",
@@ -73,16 +82,16 @@ const screens = {
     },
 
     /**
-     * Funds Transfer – Input Screen
+     * Funds Transfer â€“ Input Screen
      */
     FUNDS_TRANSFER_INPUT: {
         screenId: "FUNDS_TRANSFER_INPUT",
         identifiers: ["FUNDS TRANSFER", "FROM ACCOUNT"],
         fields: {
-            fromAccount: { label: "FROM ACCOUNT", row: 8,  col: 25, maxLen: 10 },
-            toAccount:   { label: "TO ACCOUNT",   row: 10, col: 25, maxLen: 10 },
-            amount:      { label: "AMOUNT",        row: 12, col: 25, maxLen: 12 },
-            currency:    { label: "CURRENCY",      row: 14, col: 25, maxLen: 3  }
+            fromAccount: { attachedText: "FROM ACCOUNT" },
+            toAccount:   { attachedText: "TO ACCOUNT"   },
+            amount:      { attachedText: "AMOUNT"       },
+            currency:    { attachedText: "CURRENCY"     }
         },
         keys: {
             submit: "Enter",
@@ -92,14 +101,14 @@ const screens = {
     },
 
     /**
-     * Funds Transfer – Confirmation Screen
+     * Funds Transfer â€“ Confirmation Screen
      */
     FUNDS_TRANSFER_CONFIRM: {
         screenId: "FUNDS_TRANSFER_CONFIRM",
         identifiers: ["TRANSFER SUCCESSFUL", "CONFIRMATION NUMBER"],
         fields: {
-            confirmationNumber: { label: "CONFIRMATION NUMBER", row: 10, col: 25, maxLen: 20, readOnly: true },
-            message:            { label: "MESSAGE",             row: 12, col: 25, maxLen: 60, readOnly: true }
+            confirmationNumber: { attachedText: "CONFIRMATION NUMBER" },
+            message:            { attachedText: "MESSAGE"             }
         },
         keys: {
             pfBack: "PF3",
@@ -114,7 +123,7 @@ const screens = {
         screenId: "ERROR_SCREEN",
         identifiers: ["ERROR", "INVALID"],
         fields: {
-            errorMessage: { label: "MESSAGE", row: 20, col: 2, maxLen: 79, readOnly: true }
+            errorMessage: { attachedText: "MESSAGE" }
         },
         keys: {
             pfBack: "PF3",

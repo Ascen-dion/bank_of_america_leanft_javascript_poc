@@ -17,7 +17,7 @@ flowchart TD
     end
 
     subgraph CONFIG["🔧 CONFIGURATION  (config/settings.js)"]
-        CS["TE Host · Port · Timeouts\nEnvironment (SIT/UAT) · Report Path"]
+        CS["TE ShortName · Timeouts\nEnvironment (SIT/UAT)"]
     end
 
     subgraph DATA["📊 TEST DATA  (testdata/)"]
@@ -77,7 +77,7 @@ flowchart TD
 |---|---|---|
 | **Test Suite** | `spec/ftdtest_jasmine_spec.js` | Test cases with Jasmine `describe/it` — replaces Excel Test Suite |
 | **Driver/Runner** | `driver/runner.js` | Central execution controller — manages LeanFT SDK and TE session lifecycle |
-| **Configuration** | `config/settings.js` | All environment-specific settings externalized (host, port, timeouts, env tag) |
+| **Configuration** | `config/settings.js` | All environment-specific settings externalized (shortName, timeouts, env tag) |
 | **Test Data** | `testdata/` | JSON data store with Excel-compatible reader — replaces Spreadsheet Testdata |
 | **Action Layer** | `libraries/terminalHelper.js` | Reusable keyword functions for 3270 mainframe — replaces `.qfl` VBScript libraries |
 | **Report Helper** | `libraries/reportHelper.js` | Wraps LeanFT Report SDK for structured step-level logging |
