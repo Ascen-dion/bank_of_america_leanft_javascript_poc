@@ -7,72 +7,45 @@
 ## Architecture Diagram
 
 ```mermaid
-flowchart TD
-    subgraph SUITE["TEST SUITE  (pytest)"]
-        TS["tests/test_ftd_mainframe.py\nTest Cases · Assertions"]
-    end
+flowchart LR
+    CI["1. CI/CD PIPELINE<br/>Jenkins<br/><br/>• Trigger scheduled or on-demand runs<br/>• Set TEST_ENV, TE_HOST, TE_PORT, SUITE_FILTER<br/>• Archive reports and logs"]
+    TE["2. TEST EXECUTION LAYER<br/>pytest<br/><br/>• tests/test_ftd_mainframe.py<br/>• Test classes and assertions<br/>• Keyword-driven business scenarios"]
+    AE["3. AUTOMATION ENGINE<br/>conftest.py + driver/runner.py<br/><br/>• Session-scoped setup and teardown<br/>• Shared Emulator lifecycle<br/>• Per-test hooks and failure handling"]
+    AL["4. ACTION LAYER<br/>libraries/terminal_helper.py<br/><br/>• login<br/>• select_menu_option<br/>• account_inquiry<br/>• funds_transfer<br/>• send_key / wait_for_screen"]
+    TD["5. TEST DATA LAYER<br/>testdata/<br/><br/>• test_data_manager.py<br/>• ftd_testdata.json<br/>• Centralized test inputs and expected values"]
+    OR["6. OBJECT REPOSITORY<br/>objectrepository/screens.py<br/><br/>• Screen identifiers<br/>• Row/column field mappings<br/>• Reusable 3270 UI abstraction"]
+    TN["7. TN3270 CONNECTIVITY LAYER<br/>py3270 + s3270<br/><br/>• Headless emulator runtime<br/>• Subprocess-driven terminal control<br/>• Direct TN3270 socket communication"]
+    APP["8. TARGET APPLICATION<br/>IBM Mainframe / GBS Application<br/><br/>• Logon, menu, inquiry, transfer flows<br/>• Real 3270 business transactions<br/>• Host reached through HOST:PORT"]
+    RP["9. REPORTING & LOGGING<br/>libraries/report_helper.py + results/<br/><br/>• HTML report generation<br/>• Screen captures on failure<br/>• Step-level execution logs"]
 
-    subgraph DRIVER["DRIVER / RUNNER  (driver/runner.py)"]
-        DR["Session Lifecycle\nsetup · teardown · before/after each"]
-    end
+    CFG["CONFIGURATION LAYER<br/>config/settings.py<br/><br/>• Environment selection<br/>• Host, port, timeouts<br/>• Screenshot and visibility switches"]
+    COR["CENTRALIZED OBJECT + DATA REFERENCES<br/><br/>• Tests stay free of hard-coded coordinates<br/>• Shared screen model across all keywords<br/>• Shared data lookup across all scenarios"]
+    EXT["EXTERNAL SYSTEM INTERACTION<br/><br/>• s3270 binary on PATH<br/>• TN3270 protocol over TCP<br/>• No proprietary LeanFT or HLLAPI dependency"]
 
-    subgraph CONFIG["CONFIGURATION  (config/settings.py)"]
-        CS["Host · Port · Timeouts\nEnvironment (SIT/UAT) · env vars"]
-    end
+    CI --> TE --> AE --> AL --> TD --> OR --> TN --> APP --> RP
 
-    subgraph DATA["TEST DATA  (testdata/)"]
-        TDM["test_data_manager.py\n(JSON reader)"]
-        TDF["ftd_testdata.json\nFTD_Login · AccountInquiry · FundsTransfer"]
-    end
+    CFG -. configuration .-> TE
+    CFG -. configuration .-> AE
+    CFG -. configuration .-> AL
+    TD -. data lookup .-> AL
+    OR -. field mapping .-> AL
+    COR -. reference model .-> TD
+    COR -. reference model .-> OR
+    TN <-. system interaction .-> EXT
+    APP <-. live host session .-> EXT
 
-    subgraph ACTION["ACTION LAYER  (libraries/)"]
-        TH["terminal_helper.py\nKeywords: login · account_inquiry\nfunds_transfer · sign_off\nwait_for_screen · type_in_field · send_key"]
-        RH["report_helper.py\nlog_step · capture_screen · write_html_report"]
-    end
-
-    subgraph OR["OBJECT REPOSITORY  (objectrepository/screens.py)"]
-        SCR["SCREENS dict (Python)\nLOGON_SCREEN · MAIN_MENU\nACCOUNT_INQUIRY · FUNDS_TRANSFER\nRow/Col field definitions"]
-    end
-
-    subgraph DRIVER2["TN3270 LAYER  (py3270 + s3270)"]
-        PY["py3270 Python library\nWraps s3270 subprocess\nDirect TN3270 TCP socket - no HLLAPI"]
-    end
-
-    subgraph APP["GBS APPLICATION  (IBM Mainframe)"]
-        MF["TN3270 / 3270 Protocol\nTCP Socket HOST:PORT"]
-    end
-
-    subgraph REPORT["E2E REPORT  (results/)"]
-        RPT["HTML Report\nStep Logs · Screen Captures · Pass/Fail"]
-    end
-
-    subgraph CICD["CI/CD  (Jenkinsfile)"]
-        JK["Jenkins Pipeline\nSIT · UAT · Suite Filter\nArtifact Archive · Report Publish"]
-    end
-
-    SUITE --> DRIVER
-    DRIVER --> ACTION
-    DRIVER --> DATA
-    CONFIG --> DRIVER
-    DATA --> TDM --> TDF
-    ACTION --> TH
-    ACTION --> RH
-    TH --> OR
-    TH --> DRIVER2
-    DRIVER2 --> APP
-    RH --> REPORT
-    CICD --> SUITE
-
-    style SUITE    fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
-    style DRIVER   fill:#ede9fe,stroke:#7c3aed,color:#3b0764
-    style CONFIG   fill:#fef3c7,stroke:#d97706,color:#78350f
-    style DATA     fill:#dcfce7,stroke:#16a34a,color:#14532d
-    style ACTION   fill:#fff7ed,stroke:#ea580c,color:#7c2d12
-    style OR       fill:#e0f2fe,stroke:#0284c7,color:#0c4a6e
-    style DRIVER2  fill:#f5f3ff,stroke:#6d28d9,color:#2e1065
-    style APP      fill:#fef9c3,stroke:#ca8a04,color:#713f12
-    style REPORT   fill:#f0fdf4,stroke:#15803d,color:#14532d
-    style CICD     fill:#fce7f3,stroke:#db2777,color:#831843
+    style CI fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+    style TE fill:#ede9fe,stroke:#7c3aed,color:#3b0764
+    style AE fill:#e0f2fe,stroke:#0284c7,color:#0c4a6e
+    style AL fill:#ffedd5,stroke:#ea580c,color:#7c2d12
+    style TD fill:#dcfce7,stroke:#16a34a,color:#14532d
+    style OR fill:#cffafe,stroke:#0891b2,color:#164e63
+    style TN fill:#fef3c7,stroke:#d97706,color:#78350f
+    style APP fill:#fef9c3,stroke:#ca8a04,color:#713f12
+    style RP fill:#dcfce7,stroke:#15803d,color:#14532d
+    style CFG fill:#f8fafc,stroke:#64748b,color:#334155
+    style COR fill:#eff6ff,stroke:#3b82f6,color:#1e3a8a
+    style EXT fill:#f8fafc,stroke:#475569,color:#334155
 ```
 
 ---
