@@ -202,8 +202,8 @@ def add_title_slide(prs):
 	banner.fill.fore_color.rgb = BRAND
 	banner.line.fill.background()
 
-	add_textbox(slide, Inches(0.7), Inches(1.0), Inches(8.6), Inches(0.9), "BOA Jarvis to LeanFT JavaScript Migration Plan", 28, INK, True)
-	add_textbox(slide, Inches(0.72), Inches(1.88), Inches(8.3), Inches(0.7), "Modernizing UFT VBScript mainframe automation to a VS Code, Jasmine, and LeanFT engineering model", 16, SLATE)
+	add_textbox(slide, Inches(0.7), Inches(1.0), Inches(8.9), Inches(0.9), "BOA Jarvis Modernization Approaches", 28, INK, True)
+	add_textbox(slide, Inches(0.72), Inches(1.88), Inches(8.6), Inches(0.7), "Three POC options to modernize UFT VBScript mainframe automation: LeanFT JavaScript, Python py3270, and LeanFT Java", 16, SLATE)
 
 	highlight = slide.shapes.add_shape(
 		MSO_AUTO_SHAPE_TYPE.ROUNDED_RECTANGLE,
@@ -216,7 +216,7 @@ def add_title_slide(prs):
 	highlight.fill.fore_color.rgb = PALE_ORANGE
 	highlight.line.color.rgb = BRAND
 
-	add_textbox(slide, Inches(9.15), Inches(1.25), Inches(3.2), Inches(0.35), "Presentation objective", 16, BRAND_DARK, True)
+	add_textbox(slide, Inches(9.15), Inches(1.25), Inches(3.2), Inches(0.35), "Approaches covered", 16, BRAND_DARK, True)
 	add_bullets(
 		slide,
 		Inches(9.15),
@@ -224,9 +224,9 @@ def add_title_slide(prs):
 		Inches(3.1),
 		Inches(1.1),
 		[
-			"Preserve the layered Jarvis design",
-			"Modernize language, tooling, and CI/CD",
-			"Show a practical migration factory approach",
+			"LeanFT + JavaScript",
+			"Python + py3270",
+			"LeanFT + Java",
 		],
 		12,
 		INK,
@@ -238,10 +238,10 @@ def add_title_slide(prs):
 		Inches(3.2),
 		Inches(3.65),
 		Inches(2.0),
-		"What this POC proves",
+		"Approach 1: LeanFT JavaScript",
 		[
-			"LeanFT JavaScript can drive TN3270 through an existing HLLAPI-capable emulator.",
-			"Jarvis concepts map cleanly into driver, keyword, object repository, data, config, and reporting layers.",
+			"VS Code, Jasmine, and JavaScript-based LeanFT framework.",
+			"Strong fit when the team wants modern scripting with LeanFT support.",
 		],
 		PALE_BLUE,
 		BLUE,
@@ -252,12 +252,10 @@ def add_title_slide(prs):
 		Inches(3.2),
 		Inches(3.65),
 		Inches(2.0),
-		"POC flows in scope",
+		"Approach 2: Python py3270",
 		[
-			"Login",
-			"Account Inquiry",
-			"Funds Transfer",
-			"Jenkins execution across SIT and UAT",
+			"Open-source, zero-license option using pytest and direct TN3270 socket access.",
+			"Strong fit when BOA prefers a lower-cost, headless automation model.",
 		],
 		PALE_GREEN,
 		GREEN,
@@ -268,15 +266,16 @@ def add_title_slide(prs):
 		Inches(3.2),
 		Inches(3.9),
 		Inches(2.0),
-		"Evidence used for this deck",
+		"Approach 3: LeanFT Java",
 		[
-			"Architecture docs in docs/01 and docs/02",
-			"Framework context files",
-			"Actual runner.js, terminalHelper.js, screens.js, and Jasmine spec implementation",
+			"Java, TestNG, and Maven-based LeanFT implementation.",
+			"Strong fit when BOA prefers a typed enterprise Java stack.",
 		],
 		PALE_GOLD,
 		AMBER,
 	)
+
+	add_textbox(slide, Inches(0.78), Inches(5.7), Inches(11.7), Inches(0.36), "Common point across all three: preserve Jarvis layering while improving maintainability, CI/CD readiness, and long-term modernization options.", 13, BRAND_DARK, True)
 
 	add_textbox(slide, Inches(0.75), Inches(5.7), Inches(4.0), Inches(0.3), f"Prepared on {date.today().strftime('%d %b %Y')}", 11, SLATE)
 	add_footer(slide, 1)
