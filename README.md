@@ -259,3 +259,406 @@ To integrate, point a Jenkins Pipeline job at this repository.
 4. **Run pilot scope** – agree on 3–5 regression scenarios to automate end-to-end
 5. **Validate Citrix compatibility** – confirm LeanFT Agent accessibility within the Citrix environment
 6. **Set up Jenkins pipeline** – connect to the organization's Jenkins instance using the supplied `Jenkinsfile`
+
+---
+
+## BOA Pilot Execution Guide — Step-by-Step
+
+> **Purpose:** This guide is the exact runbook to follow when starting the live pilot inside Bank of America's environment. Follow every phase in sequence. Do not skip Phase 1 or Phase 2 — everything that comes after depends on them.
+
+---
+
+### Phase 1 — Environment Setup (Day 1, ~4 hours)
+
+This phase gets the framework installed and talking to LeanFT before any mainframe connection is attempted.
+
+#### Step 1.1 — Install Node.js on the BOA test workstation
+
+```
+Minimum version: Node.js 18 LTS
+Download: https://nodejs.org (or use BOA's internal software catalog)
+Verify: node --version   →  should print v18.x.x or higher
+        npm --version    →  should print 9.x.x or higher
+```
+
+> If the workstation is air-gapped (no internet), the LeanFT `.tgz` SDK files already ship locally at:
+> `C:\Program Files (x86)\OpenText\Functional Testing for Developers\SDK\JavaScript\`
+> The `package.json` in this repo references them as `file:` paths — no internet required for SDK packages.
+
+#### Step 1.2 — Clone / copy this repository onto the workstation
+
+```bash
+# If Git is available:
+git clone https://github.com/Ascen-dion/bank_of_america_leanft_javascript_poc.git
+
+# If no Git access, copy the project folder directly. Ensure this structure is present:
+#   config/settings.js
+#   driver/runner.js
+#   libraries/terminalHelper.js
+#   objectrepository/screens.js
+#   testdata/ftd_testdata.json
+#   spec/ftdtest_jasmine_spec.js
+#   package.json
+```
+
+#### Step 1.3 — Install dependencies
+
+```bash
+cd BOA_Javascript_jasmine
+npm install
+```
+
+Expected output: `added N packages` with no `ERR!` lines. The `node_modules/` folder will be created.
+
+> **Proxy note:** If BOA has a corporate npm proxy, set it first:
+> ```bash
+> npm config set proxy http://proxy.bankofamerica.com:PORT
+> npm config set https-proxy http://proxy.bankofamerica.com:PORT
+> ```
+
+#### Step 1.4 — Verify LeanFT Agent is installed and running
+
+1. Open the Start Menu → search **"OpenText Functional Testing for Developers"**
+2. Look for the LeanFT Agent icon in the Windows system tray (bottom-right)
+3. Right-click the icon → **Settings** → confirm the port is `54345` (matches `config/settings.js`)
+4. If not installed: run `C:\Program Files (x86)\OpenText\Functional Testing for Developers\Agent\LFTAgent.exe`
+
+---
+
+### Phase 2 — Terminal Emulator Configuration (Day 1, ~2 hours)
+
+LeanFT does **not** open the mainframe connection. It controls an already-running emulator via HLLAPI. This phase configures that emulator.
+
+#### Step 2.1 — Confirm the emulator is HLLAPI-capable
+
+| Emulator | HLLAPI support | Notes |
+|---|---|---|
+| IBM Personal Communications (PCOMM) | ✅ Native | Most common at large banks |
+| Attachmate Reflection | ✅ Native | |
+| Micro Focus Rumba | ✅ Native | |
+| IBM Host On-Demand | ⚠️ Limited | Browser-based, may not support HLLAPI |
+| mochaTN3270 | ❌ No | Open-source only, no HLLAPI |
+
+> **If BOA already runs UFT for mainframe automation, they already have a HLLAPI-capable emulator** — use the same one.
+
+#### Step 2.2 — Open the terminal emulator and connect to the SIT mainframe
+
+1. Launch your emulator (e.g. IBM PCOMM)
+2. Open a new 3270 session
+3. Enter the **SIT mainframe hostname and TN3270 port** (get from BOA infra team)
+4. Connect — you should see the LOGON screen
+
+#### Step 2.3 — Note the session short name
+
+In IBM PCOMM:
+- Go to **Edit → Preferences → API** (or **File → Properties**)
+- Look for "Short session ID" or "Session name" — this is typically a single letter: `A`, `B`, etc.
+
+Then set it in the framework:
+
+```bash
+# Windows — set before running tests
+set TE_SHORT_NAME=A        # replace A with your actual session letter
+set TEST_ENV=SIT
+```
+
+Or edit `config/settings.js` directly:
+```js
+terminal: {
+    shortName: "A",    // ← update this to your session letter
+}
+```
+
+#### Step 2.4 — Smoke test the HLLAPI connection
+
+Open IBM PCOMM → **Actions → Start or Stop API** → ensure HLLAPI API is **started** (not just the emulator, but the HLLAPI service).
+
+---
+
+### Phase 3 — Screen Locator Calibration (Day 2–3, most important step)
+
+> ⚠️ **This is the single most critical phase.** The `attachedText` values in `objectrepository/screens.js` are placeholders. If they do not match the real screen exactly, every test will fail with a "field not found" error. Do not skip this phase.
+
+#### Step 3.1 — Open the LeanFT Object Identification Center (OIC)
+
+1. Start the LeanFT Agent (system tray)
+2. Open Visual Studio Code or any editor
+3. Launch the OIC: **Start Menu → OpenText FTD → Object Identification Center**
+   - Or from VS Code: open a `.js` file → press the LeanFT toolbar icon
+4. The OIC will show a crosshair/spy tool
+
+#### Step 3.2 — Capture identifiers for LOGON_SCREEN
+
+With the mainframe LOGON screen visible in the emulator:
+
+1. In OIC, click **Identify Object** / point the spy at the emulator window
+2. Click on the **USER ID** input field
+3. OIC will show its properties — look for `attachedText` (the label text immediately left of the field)
+4. Copy the **exact** value (e.g. it might be `"USER ID  :"` or `"USERID"` — spacing matters)
+5. Repeat for the **PASSWORD** field
+6. Also note the **screen title text** that uniquely identifies this screen (e.g. `"BOA LOGON"` or `"BANK OF AMERICA MAINFRAME"`)
+
+Update `objectrepository/screens.js`:
+```js
+LOGON_SCREEN: {
+    identifiers: ["<exact header text seen on screen>"],
+    fields: {
+        userId:   { attachedText: "<exact label text from OIC>" },
+        password: { attachedText: "<exact label text from OIC>" }
+    }
+}
+```
+
+#### Step 3.3 — Repeat for all screens in the pilot scope
+
+| Screen | Key fields to capture |
+|---|---|
+| `LOGON_SCREEN` | `USER ID`, `PASSWORD` |
+| `MAIN_MENU` | `OPTION` (the input field for entering a menu selection) |
+| `ACCOUNT_INQUIRY` | `ACCOUNT NUMBER`, `ACCOUNT TYPE`, `BALANCE`, `STATUS`, `ACCOUNT HOLDER` |
+| `FUNDS_TRANSFER_INPUT` | `FROM ACCOUNT`, `TO ACCOUNT`, `AMOUNT`, `CURRENCY` |
+| `CONFIRMATION` | No input fields — just capture the screen identifier text |
+
+> **Tip:** Screenshot every screen with its OIC panel open and save them. These become your "object repository evidence" documentation.
+
+#### Step 3.4 — Update screens.js with all captured values
+
+Edit `objectrepository/screens.js`. Each screen entry looks like this — replace **only** the `identifiers` strings and `attachedText` values:
+
+```js
+ACCOUNT_INQUIRY: {
+    screenId: "ACCOUNT_INQUIRY",
+    identifiers: ["<text that always appears on this screen>"],
+    fields: {
+        accountNumber: { attachedText: "<exact OIC value>" },
+        balance:       { attachedText: "<exact OIC value>" },
+        status:        { attachedText: "<exact OIC value>" }
+    }
+}
+```
+
+---
+
+### Phase 4 — Test Data Setup (Day 3, ~2 hours)
+
+#### Step 4.1 — Replace placeholder credentials
+
+Edit `testdata/ftd_testdata.json`. Replace all dummy values with real SIT credentials and account numbers provided by BOA's test team:
+
+```json
+"FTD_Login": [
+    {
+        "testCaseId": "TC001",
+        "description": "Valid login to mainframe FTD application",
+        "userId": "<real SIT user ID>",
+        "password": "<real SIT password>",
+        "expectedScreen": "<exact text that appears on Main Menu after login>"
+    }
+]
+```
+
+> **Security note:** Never commit real credentials to Git. Use environment variables for passwords:
+> ```bash
+> set BOA_PASSWORD=your_password
+> ```
+> Then reference in `testDataManager.js`:
+> ```js
+> data.password = process.env.BOA_PASSWORD || data.password;
+> ```
+
+#### Step 4.2 — Provide valid test account numbers
+
+Replace the placeholder account numbers in `FTD_AccountInquiry` and `FTD_FundsTransfer` with real SIT test accounts that BOA's test environment team can provide.
+
+---
+
+### Phase 5 — First Run: Login Smoke Test (Day 3, ~1 hour)
+
+Run only TC001 first — this is the simplest test and confirms every layer of the stack is working before running the full suite.
+
+#### Step 5.1 — Verify pre-conditions
+
+Before running, confirm all of the following:
+
+- [ ] Node.js 18+ installed
+- [ ] `npm install` completed without errors
+- [ ] IBM PCOMM (or other emulator) is open and connected to SIT mainframe
+- [ ] LOGON screen is visible in the emulator
+- [ ] LeanFT Agent is running in system tray
+- [ ] `TE_SHORT_NAME` is set to the correct session letter
+- [ ] `screens.js` updated with real `identifiers` and `attachedText` for `LOGON_SCREEN` and `MAIN_MENU`
+- [ ] `ftd_testdata.json` updated with real SIT user ID and password
+
+#### Step 5.2 — Run TC001 only
+
+```bash
+# Run only the login test case
+npx jasmine --filter="TC001"
+```
+
+#### Step 5.3 — Interpret the result
+
+| Result | What it means |
+|---|---|
+| ✅ PASS — "Main Menu displayed after login" | All layers working. Proceed to Phase 6 |
+| ❌ `No TE window found` | LeanFT Agent not running, or `TE_SHORT_NAME` is wrong |
+| ❌ `Screen LOGON_SCREEN did not appear` | `identifiers` in `screens.js` do not match real screen text |
+| ❌ `Field userId not found` | `attachedText` for `userId` in `screens.js` does not match OIC value |
+| ❌ `Cannot connect to LeanFT agent` | Port mismatch — check `config/settings.js` agent port vs Agent settings |
+| ❌ Any other error | Check `results/` folder for the LeanFT HTML report with step-level detail |
+
+---
+
+### Phase 6 — Initial Priority Test Cases (Day 4–5)
+
+Once TC001 passes, run the remaining initial test cases in this order. These cover the most critical mainframe flows and represent the pilot scope agreed with BOA.
+
+| Priority | Test Case | Screen flow | Jasmine filter |
+|---|---|---|---|
+| 1 | TC001 — Valid Login | LOGON → MAIN_MENU | `--filter="TC001"` |
+| 2 | TC002 — Invalid Login | LOGON → error message | `--filter="TC002"` |
+| 3 | TC003 — Account Inquiry (CHK) | MAIN_MENU → ACCOUNT_INQUIRY → verify balance | `--filter="TC003"` |
+| 4 | TC004 — Account Inquiry (SAV) | MAIN_MENU → ACCOUNT_INQUIRY → verify balance | `--filter="TC004"` |
+| 5 | TC005 — Funds Transfer | MAIN_MENU → FUNDS_TRANSFER → CONFIRMATION | `--filter="TC005"` |
+
+Run each test case individually first, validate the result, fix any locator issues, then run the full suite:
+
+```bash
+# Run the complete pilot suite
+npm run test:sit
+```
+
+---
+
+### Phase 7 — CI/CD Integration (Day 5, ~2 hours)
+
+Once all pilot test cases pass locally, integrate with BOA's Jenkins.
+
+#### Step 7.1 — Configure Jenkins agent requirements
+
+The Jenkins build agent (the machine that runs the tests) must have:
+- Node.js 18+ installed
+- LeanFT Agent running as a Windows service (not just tray app)
+- IBM PCOMM installed and pre-configured with the SIT session
+- The emulator session must auto-connect on startup (configure in PCOMM autostart settings)
+
+#### Step 7.2 — Set Jenkins environment variables
+
+In Jenkins → **Manage Jenkins → Credentials** (or the Pipeline job settings), set:
+```
+TE_SHORT_NAME   = A             (your emulator session letter)
+TEST_ENV        = SIT           (or UAT)
+BOA_PASSWORD    = <SIT password> (mark as Secret Text)
+```
+
+#### Step 7.3 — Create Jenkins Pipeline job
+
+1. New Item → **Pipeline**
+2. Pipeline definition: **Pipeline script from SCM**
+3. SCM: Git → enter this repository URL
+4. Script Path: `Jenkinsfile`
+5. Save and click **Build Now**
+
+The `Jenkinsfile` already handles:
+- `npm install`
+- `npm run test:sit` or `npm run test:uat` based on `TEST_ENV` parameter
+- HTML report publishing to Jenkins build page
+- Optional `SUITE_FILTER` for targeted runs
+
+---
+
+### Phase 8 — Expanding the Migration (Week 2+)
+
+Once the pilot test cases are stable on CI, begin migrating the remaining Jarvis test cases using the migration agent.
+
+#### Using the BOA Migration Agent (VS Code Copilot)
+
+For each existing Jarvis VBScript test file:
+
+1. Open VS Code in this repository
+2. Open GitHub Copilot Chat
+3. Select the **boa-migration-agent** agent
+4. Paste the VBScript test file and use the prompt:
+
+```
+Migrate this VBScript Jarvis test file to LeanFT JavaScript:
+
+[paste the VBScript content here]
+```
+
+5. The agent will produce:
+   - A complete Jasmine spec file (`spec/`)
+   - Any new keywords needed in `terminalHelper.js`
+   - Any new screens needed in `screens.js`
+   - A Migration Delta Report listing `✅ AUTO`, `⚠️ PARTIAL`, and `🔴 MANUAL` items
+
+6. For each `🔴 LOCATOR_MANUAL` flag: use the OIC to capture the missing `attachedText` and add it to `screens.js`
+7. For each `🔴 TESTDATA_MANUAL` flag: add the missing test data key to `ftd_testdata.json`
+8. Run the new spec:
+
+```bash
+npx jasmine --filter="<new test case ID>"
+```
+
+---
+
+### Quick Reference Checklist
+
+Copy this as your daily pilot status tracker:
+
+```
+PHASE 1 — Environment Setup
+  [ ] Node.js 18+ installed
+  [ ] Repository cloned / copied to workstation
+  [ ] npm install completed (no errors)
+  [ ] LeanFT Agent running on port 54345
+
+PHASE 2 — Terminal Emulator
+  [ ] HLLAPI-capable emulator confirmed
+  [ ] SIT mainframe session open and showing LOGON screen
+  [ ] Session short name identified (letter: ___ )
+  [ ] TE_SHORT_NAME set in environment or settings.js
+  [ ] HLLAPI API started in emulator
+
+PHASE 3 — Screen Locator Calibration
+  [ ] OIC opened and working
+  [ ] LOGON_SCREEN: identifiers captured
+  [ ] LOGON_SCREEN: userId attachedText captured
+  [ ] LOGON_SCREEN: password attachedText captured
+  [ ] MAIN_MENU: identifiers captured
+  [ ] MAIN_MENU: option attachedText captured
+  [ ] ACCOUNT_INQUIRY: all fields captured
+  [ ] FUNDS_TRANSFER_INPUT: all fields captured
+  [ ] CONFIRMATION: identifier text captured
+  [ ] screens.js updated with all real values
+
+PHASE 4 — Test Data
+  [ ] Real SIT user ID added to ftd_testdata.json
+  [ ] Password handled via env var (not hard-coded)
+  [ ] Real test account numbers added
+  [ ] Expected screen text values verified
+
+PHASE 5 — First Run
+  [ ] TC001 passes locally
+  [ ] LeanFT HTML report opens in results/
+
+PHASE 6 — Pilot Test Cases
+  [ ] TC001 PASS (Valid Login)
+  [ ] TC002 PASS (Invalid Login)
+  [ ] TC003 PASS (Account Inquiry CHK)
+  [ ] TC004 PASS (Account Inquiry SAV)
+  [ ] TC005 PASS (Funds Transfer)
+  [ ] Full suite: npm run test:sit PASS
+
+PHASE 7 — Jenkins CI
+  [ ] Jenkins agent configured (Node + LeanFT Agent + emulator)
+  [ ] Environment variables set in Jenkins credentials
+  [ ] Pipeline job created pointing to Jenkinsfile
+  [ ] First CI run GREEN
+
+PHASE 8 — Migration
+  [ ] First Jarvis VBScript file migrated via agent
+  [ ] MANUAL flags resolved (OIC + test data)
+  [ ] Migrated test passing on CI
+  [ ] Migration velocity established (tests/sprint)
+```
