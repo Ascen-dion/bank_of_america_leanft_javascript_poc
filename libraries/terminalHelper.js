@@ -194,19 +194,74 @@ async function readField(win, screenName, fieldName) {
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
- * Capture a screenshot of the current screen and attach to the LeanFT report.
+ * Capture the current screen text and log it in the report.
+ * NOTE: TerminalEmulators.ScreenTO does NOT support getSnapshot() in the LeanFT SDK.
+ * Use getText() to capture screen state as text for reporting.
  * @param {ScreenTO} screen
  * @param {string}   description
+ * @returns {Promise<string>} the full screen text
  */
 async function captureScreen(screen, description) {
     try {
-        const img = await screen.getSnapshot();
-        reporter.attachSnapshot(img, description);
+        const text = await screen.getText();
+        reporter.log(`[Screen Capture] ${description}`, text);
+        return text;
     } catch (e) {
-        reporter.log(`Screenshot failed: ${e.message}`);
+        reporter.log(`Screen capture failed: ${e.message}`);
+        return "";
     }
 }
+/**
+ * Wait for specific text to appear in a bounded rectangular area of the screen.
+ * Wraps ScreenTO.waitForTextInArea(text, area, milliseconds?).
+ * SDK ref: TerminalEmulators.ScreenTO#waitForTextInArea
+ *
+ * @param {ScreenTO} screen
+ * @param {string|RegExp} text        - text or regex to wait for
+ * @param {{top:number, left:number, bottom:number, right:number}} area - row/col bounds
+ * @param {number} [ms]               - timeout in ms; defaults to settings.terminal.screenTimeout
+ * @returns {Promise<boolean>}
+ */
+async function waitForTextInArea(screen, text, area, ms) {
+    const timeout = ms || settings.terminal.screenTimeout;
+    return await screen.waitForTextInArea(text, area, timeout);
+}
 
+/**
+ * Place the cursor at a specific row/column on the screen.
+ * Wraps ScreenTO.setCursorPosition(positionOrRow, column?).
+ * SDK ref: TerminalEmulators.ScreenTO#setCursorPosition
+ *
+ * @param {ScreenTO} screen
+ * @param {number}   row
+ * @param {number}   col
+ * @returns {Promise<void>}
+ */
+async function setCursorPosition(screen, row, col) {
+    await screen.setCursorPosition(row, col);
+}
+
+/**
+ * Read diagnostic properties of a field (protected, numeric, length, colours).
+ * SDK ref: TerminalEmulators.FieldTO
+ * NOTE: color() / backgroundColor() replace the deprecated getColor() / getBackgroundColor()
+ *
+ * @param {FieldTO} field
+ * @returns {Promise<{text:string, length:number, isProtected:boolean, isNumeric:boolean, isVisible:boolean, color:string, backgroundColor:string, startPosition:Object}>}
+ */
+async function getFieldInfo(field) {
+    const [text, length, isProtected, isNumeric, isVisible, color, backgroundColor, startPosition] = await Promise.all([
+        field.text(),
+        field.length(),
+        field.isProtected(),
+        field.isNumeric(),
+        field.isVisible(),
+        field.color(),
+        field.backgroundColor(),
+        field.startPosition()
+    ]);
+    return { text, length, isProtected, isNumeric, isVisible, color, backgroundColor, startPosition };
+}
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 //  Composite Keyword Actions (Business-level)
 //  These map to Jarvis high-level keywords
@@ -326,11 +381,14 @@ module.exports = {
     getTeWindow,
     waitForScreen,
     getScreenText,
+    waitForTextInArea,
+    setCursorPosition,
     sendKey,
     typeInField,
     typeSecure,
     readField,
     captureScreen,
+    getFieldInfo,
     // Business-level keywords
     login,
     selectMenuOption,

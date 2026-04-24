@@ -194,3 +194,133 @@ const reporter = require("../libraries/reportHelper");   // 5. reporting
 const td       = require("../testdata/testDataManager"); // 6. test data
 const screens  = require("../objectrepository/screens"); // 7. object repo (optional in spec)
 ```
+
+---
+
+## 11. Official SDK API Reference – TerminalEmulators Namespace (v26.1)
+
+> Source: https://admhelp.microfocus.com/documents/uftdev/26.1/JavaScriptSDKReference/TerminalEmulators.html
+> All methods return `Promise` – always `await` them.
+
+### 11.1 `TerminalEmulators.WindowTO`
+
+Represents a running terminal emulator window (HLLAPI session).
+
+| Method | Signature | Returns | Notes |
+|---|---|---|---|
+| `activate` | `activate(button?)` | `Promise<void>` | Brings window to foreground; default = left mouse button |
+| `emulatorStatus` | `emulatorStatus()` | `Promise<EmulatorStatus>` | Ready / NotReady / Disconnected |
+| `handle` | `handle()` | `Promise<number>` | Win32 window handle |
+| `protocol` | `protocol()` | `Promise<Protocol>` | e.g. `TN3270`, `TN5250` |
+| `shortName` | `shortName()` | `Promise<string>` | HLLAPI session ID (e.g. `"A"`) |
+
+**Descriptor properties used in `LFT.find(Window({...}))`:**
+- `shortName` – HLLAPI session short name (most common locator)
+- `protocol` – terminal protocol
+
+---
+
+### 11.2 `TerminalEmulators.ScreenTO`
+
+Represents the current screen within a TE window.
+
+| Method | Signature | Returns | Notes |
+|---|---|---|---|
+| `getText` | `getText(area?)` | `Promise<string>` | Full screen text or text in `{top, left, bottom, right}` area |
+| `sendTEKeys` | `sendTEKeys(keys)` | `Promise<void>` | Send a key string or `Keys` enum value (e.g. `Keys.enter`) |
+| `setCursorPosition` | `setCursorPosition(positionOrRow, column?)` | `Promise<void>` | Move cursor; pass `{row, column}` or two numbers |
+| `setText` | `setText(text, positionOrRow?, column?)` | `Promise<void>` | Write text directly to a screen position |
+| `sync` | `sync(milliseconds?)` | `Promise<void>` | Wait for host Ready status; use after every Enter/PF key |
+| `waitForText` | `waitForText(text, milliseconds?)` | `Promise<boolean>` | `text` can be a `string` or `RegExp` |
+| `waitForTextInArea` | `waitForTextInArea(text, area, milliseconds?)` | `Promise<boolean>` | Like `waitForText` but scoped to a row/col rectangle |
+| `cursorPosition` | `cursorPosition()` | `Promise<{row, column}>` | Current cursor location |
+| `id` | `id()` | `Promise<number>` | Screen ID |
+| `inputFieldCount` | `inputFieldCount()` | `Promise<number>` | Number of unprotected (input) fields |
+| `protectedFieldCount` | `protectedFieldCount()` | `Promise<number>` | Number of protected (label) fields |
+| `label` | `label()` | `Promise<string>` | Screen label |
+| `size` | `size()` | `Promise<{rows, columns}>` | Screen dimensions (typically 24×80 or 27×132) |
+
+> **No `getSnapshot()` / `snapshot()` method exists on TerminalEmulators.ScreenTO.**
+> Use `getText()` to capture screen state for logging.
+
+**`waitForText` examples from official docs:**
+```javascript
+// Wait 10s using regex (ignores variable time portion)
+await screen.waitForText(/.*LAST ACCESS AT \d\d:\d\d:\d\d ON .*DAY.*/, 10000);
+
+// Wait 5s for exact string
+await screen.waitForText("User", 5000);
+
+// Wait for text in a bounded area (rows 6-6, cols 53-60)
+await screen.waitForTextInArea("User", { top: 6, left: 53, bottom: 6, right: 60 }, 5000);
+```
+
+---
+
+### 11.3 `TerminalEmulators.FieldTO`
+
+Represents a single input or label field on the current screen.
+
+| Method | Signature | Returns | Notes |
+|---|---|---|---|
+| `setText` | `setText(text, offset?)` | `Promise<void>` | Type into unprotected field; optional offset within field |
+| `setSecure` | `setSecure(codedString)` | `Promise<void>` | For password / hidden fields |
+| `setCursor` | `setCursor(offset?)` | `Promise<void>` | Move cursor to this field (optional character offset) |
+| `text` | `text()` | `Promise<string>` | Read current field value |
+| `attachedText` | `attachedText()` | `Promise<string>` | The label text next to the field (locator property) |
+| `id` | `id()` | `Promise<number>` | Field ID |
+| `length` | `length()` | `Promise<number>` | Maximum field length in characters |
+| `isProtected` | `isProtected()` | `Promise<boolean>` | `true` = read-only label field |
+| `isNumeric` | `isNumeric()` | `Promise<boolean>` | `true` = numeric-only field |
+| `isVisible` | `isVisible()` | `Promise<boolean>` | Visibility flag |
+| `color` | `color()` | `Promise<string>` | Text colour (replaces deprecated `getColor()`) |
+| `backgroundColor` | `backgroundColor()` | `Promise<string>` | Background colour (replaces deprecated `getBackgroundColor()`) |
+| `startPosition` | `startPosition()` | `Promise<{row, column}>` | Field's top-left screen coordinate |
+| `waitUntilVisible` | `waitUntilVisible(timeout?)` | `Promise<boolean>` | Synchronise on field appearance; returns `false` on timeout |
+
+**Descriptor properties used in `LFT.find(Field({...}))`:**
+- `attachedText` – most reliable locator; equals the protected label adjacent to the input field
+- `id` – zero-based field index (fragile if screen layout changes)
+
+---
+
+### 11.4 `LFT` Lifecycle (leanft module)
+
+| Method | When to call |
+|---|---|
+| `LFT.init(settings)` | Once in `beforeAll` (via `runner.setup()`) |
+| `LFT.cleanup()` | Once in `afterAll` (via `runner.teardown()`) |
+| `LFT.beforeTest()` | In `beforeEach` (via `runner.beforeEachTest()`) |
+| `LFT.afterTest()` | In `afterEach` (via `runner.afterEachTest()`) |
+
+---
+
+### 11.5 `StringUtils` (leanft.utils module)
+
+Utility helpers for string assertions and manipulation:
+- `StringUtils.isNullOrEmpty(str)` → `boolean`
+- `StringUtils.isNullOrWhiteSpace(str)` → `boolean`
+- `StringUtils.trim(str)` → `string`
+- `StringUtils.trimLeft(str)` / `StringUtils.trimRight(str)` → `string`
+- `StringUtils.joinFunc(separator, ...parts)` → `string`
+- `StringUtils.splitFunc(str, separator)` → `string[]`
+
+---
+
+### 11.6 Keys Enum (HLLAPI key strings)
+
+Used in `screen.sendTEKeys(key)`. Keys are referenced via `TE.DescriptionsAndEnums.Keys`:
+
+| Logical Name | Key Constant |
+|---|---|
+| Enter | `Keys.enter` |
+| Clear | `Keys.clear` |
+| PF1–PF12 | `Keys.pf1` … `Keys.pf12` |
+| PF13–PF24 | `Keys.pf13` … `Keys.pf24` |
+| Tab | `Keys.tab` |
+| BackTab | `Keys.backtab` |
+| PA1–PA3 | `Keys.pa1` … `Keys.pa3` |
+| Home | `Keys.home` |
+| End | `Keys.end` |
+
+You can also pass raw HLLAPI strings directly: `"@E"` (Enter), `"@C"` (Clear), `"@3"` (PF3).
