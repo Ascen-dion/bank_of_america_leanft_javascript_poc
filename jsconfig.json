@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "checkJs": true,
+    "types": ["jasmine"],
+    "typeRoots": ["./node_modules/@types", "./typings"]
+  },
+  "include": ["**/*.js"],
+  "exclude": ["node_modules"]
+}

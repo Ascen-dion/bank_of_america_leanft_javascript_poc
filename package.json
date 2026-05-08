@@ -9,6 +9,7 @@
     "test:uat": "cross-env TEST_ENV=UAT npm test"
   },
   "dependencies": {
+    "cross-env": "^7.0.3",
     "jasmine": "^6.2.0",
     "leanft": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft-2026.1.0.tgz",
     "leanft.report": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft.report-2026.1.0.tgz",
@@ -29,7 +30,9 @@
     "leanft.sdk.web": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft.sdk.web-2026.1.0.tgz",
     "leanft.sdk.winforms": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft.sdk.winforms-2026.1.0.tgz",
     "leanft.sdk.wpf": "file:../../../../../../Program Files (x86)/OpenText/Functional Testing for Developers/SDK/JavaScript/leanft.sdk.wpf-2026.1.0.tgz",
-    "cross-env": "^7.0.3",
     "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/jasmine": "^6.0.0"
   }
 }
